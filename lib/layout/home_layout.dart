@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:sqflite/sqflite.dart';
+import 'package:task_app/components/default_form_field.dart';
 import 'package:task_app/modules/archived_tasks_screen.dart';
 import 'package:task_app/modules/done_tasks_screen.dart';
 import 'package:task_app/modules/new_tasks_screen.dart';
@@ -13,10 +14,11 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   int currentindex = 0;
-  Database database;
+  late Database database;
   var scaffoldkey = GlobalKey<ScaffoldState>();
   bool isBottomSheetShow = false;
   IconData FabIcon = Icons.edit;
+  var titleController = TextEditingController();
 
   List<Widget> screens = [
     NewTasksScreen(),
@@ -48,8 +50,28 @@ class _HomeScreenState extends State<HomeScreen> {
               FabIcon = Icons.edit;
             });
           } else {
-            scaffoldkey.currentState.showBottomSheet((context) {
-              Container(width: double.infinity, height: 120, color: Colors.red);
+            scaffoldkey.currentState?.showBottomSheet((context) {
+              return Container(
+                color: Colors.grey[100],
+                padding: EdgeInsets.all(20),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    defaultFormField(
+                      controller: titleController,
+                      type: TextInputType.text,
+                      label: "Task Title",
+                      prefix: Icons.title,
+                      validate: (String? value) {
+                        if (value == null || value.isEmpty) {
+                          return "title must not be empty";
+                        }
+                        return null;
+                      },
+                    ),
+                  ],
+                ),
+              );
             });
             isBottomSheetShow = true;
             setState(() {
@@ -119,7 +141,7 @@ class _HomeScreenState extends State<HomeScreen> {
           .catchError((error) {
             print("Error when Inserting New Record ${error.toString()}");
           });
-      return null;
+      return Future.value();
     });
   }
 }
