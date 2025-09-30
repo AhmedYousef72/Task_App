@@ -49,17 +49,25 @@ class _HomeScreenState extends State<HomeScreen> {
         onPressed: () {
           if (isBottomSheetShow) {
             if (formkey.currentState!.validate()) {
-              Navigator.pop(context);
-              isBottomSheetShow = false;
-              setState(() {
-                FabIcon = Icons.edit;
+              insertToDatabase(
+                date: datecontroller.text,
+                time: timeController.text,
+                title: titleController.text,
+              ).then((value) {
+                Navigator.pop(context);
+                isBottomSheetShow = false;
+                setState(() {
+                  FabIcon = Icons.edit;
+                });
               });
             }
             ;
           } else {
             scaffoldkey.currentState?.showBottomSheet((context) {
+              elevation:
+              20.0;
               return Container(
-                color: Colors.grey[100],
+                color: Colors.white,
                 padding: EdgeInsets.all(20),
                 child: Form(
                   key: formkey,
@@ -165,7 +173,7 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void createDatabase() async {
-    await openDatabase(
+    database = await openDatabase(
       "todo.db",
       version: 1,
       onCreate: (database, version) {
@@ -187,11 +195,15 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  void insertToDatabase() {
-    database.transaction((txn) {
+  Future insertToDatabase({
+    required String title,
+    required String time,
+    required String date,
+  }) async {
+    return await database.transaction((txn) {
       txn
           .rawInsert(
-            "INSERT INTO tasks (title,date,time,status) VALUES('First task','02222','8:30','New')",
+            "INSERT INTO tasks (title,date,time,status) VALUES('$title','$date','$time','New')",
           )
           .then((value) {
             print("$value inserted Successfuly ");
