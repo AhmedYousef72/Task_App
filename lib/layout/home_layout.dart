@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:task_app/components/default_form_field.dart';
 import 'package:task_app/modules/archived_tasks_screen.dart';
@@ -16,9 +17,12 @@ class _HomeScreenState extends State<HomeScreen> {
   int currentindex = 0;
   late Database database;
   var scaffoldkey = GlobalKey<ScaffoldState>();
+  var formkey = GlobalKey<FormState>();
   bool isBottomSheetShow = false;
   IconData FabIcon = Icons.edit;
   var titleController = TextEditingController();
+  var timeController = TextEditingController();
+  var datecontroller = TextEditingController();
 
   List<Widget> screens = [
     NewTasksScreen(),
@@ -44,32 +48,86 @@ class _HomeScreenState extends State<HomeScreen> {
       floatingActionButton: FloatingActionButton(
         onPressed: () {
           if (isBottomSheetShow) {
-            Navigator.pop(context);
-            isBottomSheetShow = false;
-            setState(() {
-              FabIcon = Icons.edit;
-            });
+            if (formkey.currentState!.validate()) {
+              Navigator.pop(context);
+              isBottomSheetShow = false;
+              setState(() {
+                FabIcon = Icons.edit;
+              });
+            }
+            ;
           } else {
             scaffoldkey.currentState?.showBottomSheet((context) {
               return Container(
                 color: Colors.grey[100],
                 padding: EdgeInsets.all(20),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    defaultFormField(
-                      controller: titleController,
-                      type: TextInputType.text,
-                      label: "Task Title",
-                      prefix: Icons.title,
-                      validate: (String? value) {
-                        if (value == null || value.isEmpty) {
-                          return "title must not be empty";
-                        }
-                        return null;
-                      },
-                    ),
-                  ],
+                child: Form(
+                  key: formkey,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      defaultFormField(
+                        controller: titleController,
+                        type: TextInputType.text,
+                        label: "Task Title",
+                        prefix: Icons.title,
+                        validate: (String? value) {
+                          if (value == null || value.isEmpty) {
+                            return "title must not be empty";
+                          }
+                          return null;
+                        },
+                      ),
+                      SizedBox(height: 12),
+                      defaultFormField(
+                        controller: timeController,
+                        type: TextInputType.datetime,
+                        label: "Task time",
+                        prefix: Icons.watch_later_outlined,
+                        onTap: () {
+                          showTimePicker(
+                            context: context,
+                            initialTime: TimeOfDay.now(),
+                          ).then((value) {
+                            timeController.text = value!
+                                .format(context)
+                                .toString();
+                          });
+                        },
+                        validate: (String? value) {
+                          if (value == null || value.isEmpty) {
+                            return "time must not be empty";
+                          }
+                          ;
+                        },
+                      ),
+                      SizedBox(height: 12),
+                      defaultFormField(
+                        controller: datecontroller,
+                        type: TextInputType.datetime,
+                        label: "Task Date",
+                        prefix: Icons.calendar_today,
+                        onTap: () {
+                          showDatePicker(
+                            context: context,
+                            firstDate: DateTime.now(),
+                            lastDate: DateTime.parse("2025-10-30"),
+                          ).then((value) {
+                            // print(DateFormat.yMMMd().format(value!));   //  This how to make formating for date to appear inm the screen
+                            datecontroller.text = DateFormat.yMMMd()
+                                .format(value!)
+                                .toString();
+                          });
+                        },
+                        validate: (String? value) {
+                          if (value == null || value.isEmpty) {
+                            return "Date must not be empty";
+                          }
+                          return null;
+                        },
+                      ),
+                    ],
+                  ),
                 ),
               );
             });
